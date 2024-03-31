@@ -23,7 +23,7 @@ from sec_parser.processing_steps.individual_semantic_element_extractor.single_el
     TableCheck,
 )
 from sec_parser.processing_steps.individual_semantic_element_extractor.single_element_checks.top_section_title_check import (
-    TopSectionTitleCheck,
+    TopSectionTitleCheck10K, TopSectionTitleCheck10Q,
 )
 from sec_parser.processing_steps.individual_semantic_element_extractor.single_element_checks.xbrl_tag_check import (
     XbrlTagCheck,
@@ -45,6 +45,9 @@ from sec_parser.processing_steps.text_element_merger import TextElementMerger
 from sec_parser.processing_steps.title_classifier import TitleClassifier
 from sec_parser.processing_steps.top_section_manager_for_10q import (
     TopSectionManagerFor10Q,
+)
+from sec_parser.processing_steps.top_section_manager_for_10k import (
+    TopSectionManagerFor10K,
 )
 from sec_parser.semantic_elements.composite_semantic_element import (
     CompositeSemanticElement,
@@ -206,5 +209,50 @@ class Edgar10QParser(AbstractSemanticElementParser):
             TableCheck(),
             XbrlTagCheck(),
             ImageCheck(),
-            TopSectionTitleCheck(),
+            TopSectionTitleCheck10Q(),
+        ]
+
+class Edgar10KParser(AbstractSemanticElementParser):
+    """
+    The Edgar10KParser class is responsible for parsing SEC EDGAR 10-K
+    quarterly reports. It transforms the HTML documents into a list
+    of elements. Each element in this list represents a part of
+    the visual structure of the original document.
+    """
+
+    def get_default_steps(
+        self,
+        get_checks: Callable[[], list[AbstractSingleElementCheck]] | None = None,
+    ) -> list[AbstractProcessingStep]:
+        return [
+            IndividualSemanticElementExtractor(
+                get_checks=get_checks or self.get_default_single_element_checks,
+            ),
+            ImageClassifier(types_to_process={NotYetClassifiedElement}),
+            EmptyElementClassifier(types_to_process={NotYetClassifiedElement}),
+            TableClassifier(types_to_process={NotYetClassifiedElement}),
+            TableOfContentsClassifier(types_to_process={TableElement}),
+            TopSectionManagerFor10K(types_to_process={NotYetClassifiedElement}),
+            IntroductorySectionElementClassifier(),
+            TextClassifier(types_to_process={NotYetClassifiedElement}),
+            HighlightedTextClassifier(types_to_process={TextElement}),
+            SupplementaryTextClassifier(
+                types_to_process={TextElement, HighlightedTextElement},
+            ),
+            PageHeaderClassifier(
+                types_to_process={TextElement, HighlightedTextElement},
+            ),
+            PageNumberClassifier(
+                types_to_process={TextElement, HighlightedTextElement},
+            ),
+            TitleClassifier(types_to_process={HighlightedTextElement}),
+            TextElementMerger(),
+        ]
+
+    def get_default_single_element_checks(self) -> list[AbstractSingleElementCheck]:
+        return [
+            TableCheck(),
+            XbrlTagCheck(),
+            ImageCheck(),
+            TopSectionTitleCheck10K(),
         ]
