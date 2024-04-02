@@ -9,6 +9,7 @@ identification, title parsing, and text extraction.
 from sec_parser.processing_engine.core import (
     AbstractSemanticElementParser,
     Edgar10QParser,
+    Edgar10KParser,
 )
 from sec_parser.processing_engine.html_tag import HtmlTag
 from sec_parser.processing_engine.html_tag_parser import HtmlTagParser
@@ -17,5 +18,6 @@ __all__ = [
     "HtmlTagParser",
     "AbstractSemanticElementParser",
     "Edgar10QParser",
+    "Edgar10KParser",
     "HtmlTag",
 ]

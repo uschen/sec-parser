@@ -41,7 +41,17 @@ def compute_text_styles_metrics(tag: Tag) -> dict[tuple[str, str], float]:
         parent = text_node.find_parent()
 
         effective_styles: dict[str, str] = _compute_effective_style(parent)
-
+        # pp = parent.find_parent()
+        # if pp:
+        #     # pp_styles : dict[str, str] = _compute_effective_style(pp)
+        #     # if 'margin-top' in pp_styles:
+        #     #     pp_mt = pp_styles['margin-top']
+        #     #     if 'pt' in pp_mt:
+        #     #         effective_styles['margin-top'] = int(pp_mt.removesuffix('pt'))
+        #     ppp = pp.find_parent()
+        #     if ppp and ppp.name == 'ix:continuation':
+        #         # print('ix:continuation')
+        #         effective_styles['ix_continuation'] = 1
         for prop, val in effective_styles.items():
             style_metrics[(prop, val)] += char_count
 

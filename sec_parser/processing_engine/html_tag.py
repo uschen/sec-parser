@@ -287,6 +287,23 @@ class HtmlTag:
         if self._text_styles_metrics is None:
             self._text_styles_metrics = compute_text_styles_metrics(self._bs4)
         return self._text_styles_metrics
+    
+    def is_ix_continuation(self) -> bool:
+        for text_node in self._bs4.find_all(string=True, recursive=True):
+            text: str = text_node.strip()
+            char_count: int = len(text)
+            if char_count == 0:
+                continue
+            parent = text_node.find_parent()
+            if not parent:
+                continue
+            pp = parent.find_parent()
+            if not pp:
+                continue
+            ppp = pp.find_parent()
+            if ppp and (ppp.name == 'ix:continuation' or ppp.name == 'ix:nonnumeric'):
+                return True
+        return False
 
     def get_approx_table_metrics(self) -> ApproxTableMetrics | None:
         if self._approx_table_metrics is NotSet:
