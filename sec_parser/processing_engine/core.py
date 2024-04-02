@@ -246,7 +246,7 @@ class Edgar10KParser(AbstractSemanticElementParser):
                 types_to_process={TextElement, HighlightedTextElement},
             ),
             TitleClassifier(types_to_process={HighlightedTextElement}),
-            TextElementMerger(),
+            # TextElementMerger(),
         ]
 
     def get_default_single_element_checks(self) -> list[AbstractSingleElementCheck]:

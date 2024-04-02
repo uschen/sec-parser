@@ -16,7 +16,14 @@ if TYPE_CHECKING:  # pragma: no cover
     from sec_parser.semantic_elements.abstract_semantic_element import (
         AbstractSemanticElement,
     )
+from functools import cmp_to_key
 
+def sort_text_style(x: TextStyle, y: TextStyle) -> int:
+    if x.centered and not y.centered:
+        return 1
+    if not x.centered and y.centered:
+        return -1
+    return x.margin_top - y.margin_top
 
 class TitleClassifier(AbstractElementwiseProcessingStep):
     """
@@ -43,13 +50,25 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
         )
 
         self._unique_styles_by_order: tuple[TextStyle, ...] = ()
-
+    
     def _add_unique_style(self, style: TextStyle) -> None:
         """Add a new unique style if not already present."""
         if style not in self._unique_styles_by_order:
-            self._unique_styles_by_order = tuple(
-                dict.fromkeys([*self._unique_styles_by_order, style]).keys(),
-            )
+            if style.centered:
+                self._unique_styles_by_order = tuple(
+                    dict.fromkeys([style, *self._unique_styles_by_order]).keys(),
+                )
+            else:
+                self._unique_styles_by_order = tuple(
+                    dict.fromkeys([*self._unique_styles_by_order, style]).keys(),
+                )
+            # sorted_dict = sorted(
+            #           [*self._unique_styles_by_order, style],
+            #           key=cmp_to_key(sort_text_style),
+            #       )
+            # self._unique_styles_by_order = tuple(
+            #     dict.fromkeys([*self._unique_styles_by_order, style]).keys(),
+            # )
 
     def _process_element(
         self,
@@ -59,13 +78,13 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
         """Process each element and convert to TitleElement if necessary."""
         if not isinstance(element, HighlightedTextElement):
             return element
-
+        # print(element.style)
         # Ensure the style is tracked
         self._add_unique_style(element.style)
 
         level = self._unique_styles_by_order.index(element.style)
         return TitleElement.create_from_element(
             element,
-            level=level,
+            level=level + 1 if element.ix_continuation else level,
             log_origin=self.__class__.__name__,
         )

@@ -48,4 +48,5 @@ class HighlightedTextClassifier(AbstractElementwiseProcessingStep):
             element,
             log_origin=self.__class__.__name__,
             style=style,
+            ix_continuation=element.html_tag.is_ix_continuation(),
         )

@@ -24,7 +24,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 part_pattern = re.compile(r"part\s+((IV|III|II|I))[.\s]*", re.IGNORECASE)
-item_pattern = re.compile(r"item\s+(\d+a?)[.\s]*", re.IGNORECASE)
+item_pattern = re.compile(r"item\s+(\d+(a|b|c|d|e)?)[.\s]*", re.IGNORECASE)
 
 
 @dataclass

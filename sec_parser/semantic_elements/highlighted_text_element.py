@@ -27,12 +27,15 @@ class HighlightedTextElement(AbstractSemanticElement):
     be considered TitleElements.
     """
 
+    ix_continuation: bool = False
+
     def __init__(
         self,
         html_tag: HtmlTag,
         *,
         processing_log: ProcessingLog | None = None,
         style: TextStyle | None = None,
+        ix_continuation: bool = False,
         log_origin: LogItemOrigin | None = None,
     ) -> None:
         super().__init__(html_tag, processing_log=processing_log, log_origin=None)
@@ -40,6 +43,7 @@ class HighlightedTextElement(AbstractSemanticElement):
             msg = "styles must be specified for HighlightedElement"
             raise SecParserValueError(msg)
         self.style = style
+        self.ix_continuation = ix_continuation
         self.log_init(log_origin)
 
     @classmethod
@@ -49,6 +53,7 @@ class HighlightedTextElement(AbstractSemanticElement):
         log_origin: LogItemOrigin,
         *,
         style: TextStyle | None = None,
+        ix_continuation: bool = False,
     ) -> HighlightedTextElement:
         if style is None:
             msg = "Style must be provided."
@@ -56,6 +61,7 @@ class HighlightedTextElement(AbstractSemanticElement):
         return cls(
             source.html_tag,
             style=style,
+            ix_continuation=ix_continuation,
             processing_log=source.processing_log,
             log_origin=log_origin,
         )
@@ -85,6 +91,7 @@ class TextStyle:
     italic: bool = False
     centered: bool = False
     underline: bool = False
+    # ix_continuation: bool = False
 
     def __bool__(self) -> bool:
         return any(asdict(self).values())
@@ -100,13 +107,15 @@ class TextStyle:
             text,
             cls.PERCENTAGE_THRESHOLD,
         )
-
+        # print('style_percentage', style_percentage.items())
         # Filter styles that meet the percentage threshold
         filtered_styles = {
             (k, v): p
             for (k, v), p in style_percentage.items()
             if p >= cls.PERCENTAGE_THRESHOLD
         }
+        original_style = dict((n, v1) for (n, v1) in (k for (k, v) in style_percentage.items()))
+        # print('filtered_styles', )
 
         # Define checks for each style
         style_checks = {
@@ -114,6 +123,7 @@ class TextStyle:
             "italic": lambda k, v: k == "font-style" and v == "italic",
             "centered": lambda k, v: k == "text-align" and v == "center",
             "underline": lambda k, v: k == "text-decoration" and v == "underline",
+            # 'ix_continuation': lambda k, v: k == "ix_continuation" and v == 1,
         }
 
         # Apply checks to the filtered styles
@@ -121,7 +131,7 @@ class TextStyle:
             style: any(check(k, v) for (k, v) in filtered_styles)
             for style, check in style_checks.items()
         }
-
+        # print('style_results', style_results)
         # Return a TextStyle instance with the results
         return cls(
             is_all_uppercase=is_all_uppercase,
@@ -129,6 +139,8 @@ class TextStyle:
             italic=style_results["italic"],
             centered=style_results["centered"],
             underline=style_results["underline"],
+            # ix_continuation=style_results['ix_continuation'],
+            # margin_top=original_style.get('margin-top', 0)
         )
 
     @classmethod
