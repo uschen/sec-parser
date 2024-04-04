@@ -148,6 +148,15 @@ class AbstractSemanticElementParser(ABC):
             include_irrelevant_elements=include_irrelevant_elements,
         )
 
+    def unwrap_ix_tag(self, tag: HtmlTag) -> list[HtmlTag]:
+        out: list[HtmlTag] = []
+        for child in tag.get_children():
+            if child.name == "ix:continuation":
+                out += self.unwrap_ix_tag(child)
+            else:
+                out.append(child)
+        return out
+
     def parse_from_tags(
         self,
         root_tags: list[HtmlTag],
@@ -163,7 +172,7 @@ class AbstractSemanticElementParser(ABC):
             # unwrap root level ix:continuation
             if tag.name == "ix:continuation":
                 elements += [
-                    NotYetClassifiedElement(child) for child in tag.get_children()
+                    NotYetClassifiedElement(child) for child in self.unwrap_ix_tag(tag)
                 ]
             else:
                 elements.append(NotYetClassifiedElement(tag))
@@ -250,7 +259,9 @@ class Edgar10KParser(AbstractSemanticElementParser):
             PageBreakClassifier(types_to_process={NotYetClassifiedElement}),
             ImageClassifier(types_to_process={NotYetClassifiedElement}),
             EmptyElementClassifier(types_to_process={NotYetClassifiedElement}),
-            TableClassifier(types_to_process={NotYetClassifiedElement}),
+            TableClassifier(
+                types_to_process={NotYetClassifiedElement}, check_threshold=False
+            ),
             TableOfContentsClassifier(types_to_process={TableElement}),
             PageHeaderByDistanceToPagebreakClassifier(
                 types_to_process={NotYetClassifiedElement, TextPreMergedElement}

@@ -27,12 +27,14 @@ class TableClassifier(AbstractElementwiseProcessingStep):
         *,
         types_to_process: set[type[AbstractSemanticElement]] | None = None,
         types_to_exclude: set[type[AbstractSemanticElement]] | None = None,
+        check_threshold: bool = True,
     ) -> None:
         super().__init__(
             types_to_process=types_to_process,
             types_to_exclude=types_to_exclude,
         )
         self._row_count_threshold = 1
+        self._check_threshold = check_threshold
 
     def _process_element(
         self,
@@ -40,6 +42,11 @@ class TableClassifier(AbstractElementwiseProcessingStep):
         _: ElementProcessingContext,
     ) -> AbstractSemanticElement:
         if element.html_tag.contains_tag("table", include_self=True):
+            if not self._check_threshold:
+                return TableElement.create_from_element(
+                    element,
+                    log_origin=self.__class__.__name__,
+                )
             metrics = element.html_tag.get_approx_table_metrics()
             if metrics is None:
                 element.processing_log.add_item(
