@@ -39,7 +39,7 @@ from sec_parser.semantic_tree.tree_node import TreeNode
 __all__ = [
     # Main parser classes
     "Edgar10QParser",
-    "Edgar10QParser",
+    "Edgar10KParser",
     "TreeBuilder",
     # Common semantic elements
     "AbstractSemanticElement",
