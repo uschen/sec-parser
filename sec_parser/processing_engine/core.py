@@ -157,9 +157,16 @@ class AbstractSemanticElementParser(ABC):
         include_irrelevant_elements: bool | None = None,
     ) -> list[AbstractSemanticElement]:
         steps = self._get_steps()
-        elements: list[AbstractSemanticElement] = [
-            NotYetClassifiedElement(tag) for tag in root_tags
-        ]
+        elements: list[AbstractSemanticElement] = []
+
+        for tag in root_tags:
+            # unwrap root level ix:continuation
+            if tag.name == "ix:continuation":
+                elements += [
+                    NotYetClassifiedElement(child) for child in tag.get_children()
+                ]
+            else:
+                elements.append(NotYetClassifiedElement(tag))
 
         for step in steps:
             elements = step.process(elements)

@@ -14,6 +14,9 @@ from sec_parser.semantic_elements.semantic_elements import (
     AbstractSemanticElement,
 )
 from sec_parser.utils.bs4_.without_tags import clone_without_children
+from sec_parser.semantic_elements.highlighted_text_element import (
+    TextStyle,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from sec_parser.processing_steps.abstract_classes.processing_context import (
@@ -105,11 +108,15 @@ class TextElementPreMerger(AbstractElementwiseProcessingStep):
         current_span_tag: HtmlTag = None
         for tag in span_tags:
             current_span_tag = tag
-            style_attr = tag._bs4.attrs.get("style")
+            styles_metrics = element.html_tag.get_text_styles_metrics()
+            style: TextStyle = TextStyle.from_style_and_text(
+                styles_metrics, element.text
+            )
+            # style_attr = tag._bs4.attrs.get("style")
             if current_style_attr is None:
-                current_style_attr = style_attr
+                current_style_attr = style
                 continue
-            if current_style_attr != style_attr:
+            if current_style_attr != style:
                 return element
         if current_span_tag is None:
             return element

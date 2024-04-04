@@ -29,6 +29,8 @@ def sort_text_style(x: TextStyle, y: TextStyle) -> int:
         return x.is_all_uppercase - y.is_all_uppercase
     if x.bold_with_font_weight - y.bold_with_font_weight != 0:
         return x.bold_with_font_weight - y.bold_with_font_weight
+    if x.italic - y.italic != 0:
+        return x.italic - y.italic
     return 0
 
 
