@@ -11,6 +11,9 @@ from sec_parser.processing_steps.abstract_classes.abstract_elementwise_processin
 from sec_parser.processing_steps.abstract_classes.abstract_processing_step import (
     AbstractProcessingStep,
 )
+from sec_parser.processing_steps.individual_semantic_element_extractor.text_element_premerger import (
+    TextElementPreMerger,
+)
 from sec_parser.processing_steps.empty_element_classifier import EmptyElementClassifier
 from sec_parser.processing_steps.image_classifier import ImageClassifier
 from sec_parser.processing_steps.individual_semantic_element_extractor.individual_semantic_element_extractor import (
@@ -32,6 +35,7 @@ from sec_parser.processing_steps.top_section_manager_for_10k import (
 __all__ = [
     "AbstractProcessingStep",
     "AbstractElementwiseProcessingStep",
+    "TextElementPreMerger",
     "TextClassifier",
     "TitleClassifier",
     "ImageClassifier",

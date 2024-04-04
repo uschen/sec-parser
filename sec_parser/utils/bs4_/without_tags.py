@@ -17,3 +17,10 @@ def without_tags(tag: bs4.Tag, names: Iterable[str]) -> bs4.Tag:
         for descendant in tag_copy.find_all(name=name):
             descendant.decompose()
     return tag_copy
+
+
+def clone_without_children(tag: bs4.Tag) -> bs4.Tag:
+    tag_copy = copy.deepcopy(tag)
+    for descendant in tag_copy.find_all():
+        descendant.decompose()
+    return tag_copy

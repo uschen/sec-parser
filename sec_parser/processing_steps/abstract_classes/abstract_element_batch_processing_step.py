@@ -51,9 +51,7 @@ class AbstractElementBatchProcessingStep(AbstractProcessingStep):
         elements: list[AbstractSemanticElement],
     ) -> list[AbstractSemanticElement]:
         for iteration in range(self._NUM_ITERATIONS):
-            context = ElementProcessingContext(
-                iteration=iteration,
-            )
+            context = ElementProcessingContext(iteration=iteration, elements=elements)
             elements = self._process_recursively(elements, _context=context)
 
         return elements

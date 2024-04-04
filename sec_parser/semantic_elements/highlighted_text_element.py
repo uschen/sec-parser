@@ -28,6 +28,7 @@ class HighlightedTextElement(AbstractSemanticElement):
     """
 
     ix_continuation: bool = False
+    style: TextStyle
 
     def __init__(
         self,
@@ -91,10 +92,25 @@ class TextStyle:
     italic: bool = False
     centered: bool = False
     underline: bool = False
+
+    # _font_size: float = 0
+
+    # _abc: str = ""
     # ix_continuation: bool = False
 
     def __bool__(self) -> bool:
-        return any(asdict(self).values())
+        d = asdict(self)
+        # d.pop("_font_size")
+        return any(d.values())
+
+    def __hash__(self) -> int:
+        d = asdict(self)
+        # d.pop("_font_size")
+        keys = d.keys()
+        sorted(keys)
+        val = ";".join([f"{k}:{d[k]}" for k in keys])
+        # print(val)
+        return hash(val)
 
     @classmethod
     def from_style_and_text(
@@ -114,8 +130,15 @@ class TextStyle:
             for (k, v), p in style_percentage.items()
             if p >= cls.PERCENTAGE_THRESHOLD
         }
-        original_style = dict((n, v1) for (n, v1) in (k for (k, v) in style_percentage.items()))
-        # print('filtered_styles', )
+        original_style = dict(
+            (n, v1) for (n, v1) in (k for (k, v) in style_percentage.items())
+        )
+        fs = original_style["font-size"] if "font-size" in original_style else ""
+        if fs.endswith("pt"):
+            fs = float(fs.removesuffix("pt"))
+        else:
+            fs = 0
+        # print("original_style", original_style)
 
         # Define checks for each style
         style_checks = {
@@ -139,6 +162,7 @@ class TextStyle:
             italic=style_results["italic"],
             centered=style_results["centered"],
             underline=style_results["underline"],
+            # _font_size=fs,
             # ix_continuation=style_results['ix_continuation'],
             # margin_top=original_style.get('margin-top', 0)
         )

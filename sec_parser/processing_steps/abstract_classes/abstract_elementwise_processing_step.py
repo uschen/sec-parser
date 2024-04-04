@@ -15,6 +15,7 @@ from sec_parser.processing_steps.abstract_classes.processing_context import (
 from sec_parser.semantic_elements.composite_semantic_element import (
     CompositeSemanticElement,
 )
+from sec_parser.semantic_elements.top_section_title import TopSectionTitle
 from sec_parser.semantic_elements.semantic_elements import ErrorWhileProcessingElement
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -69,11 +70,16 @@ class AbstractElementwiseProcessingStep(AbstractProcessingStep):
         elements: list[AbstractSemanticElement],
         *,
         _context: ElementProcessingContext,
+        is_inner: bool,
     ) -> list[AbstractSemanticElement]:
         for i, e in enumerate(elements):
+            if not is_inner:
+                _context.element_index = i
             # avoids lint error "`element` overwritten by assignment target"
             element = e
-
+            if isinstance(e, TopSectionTitle):
+                # print(e.section_type.identifier)
+                _context.section_id = e.section_type.identifier
             try:
                 if self._types_to_process and not any(
                     isinstance(element, t) for t in self._types_to_process
@@ -86,6 +92,7 @@ class AbstractElementwiseProcessingStep(AbstractProcessingStep):
                     inner_elements = self._process_recursively(
                         list(element.inner_elements),
                         _context=_context,
+                        is_inner=True,
                     )
                     element.inner_elements = tuple(inner_elements)
                 else:
@@ -109,7 +116,8 @@ class AbstractElementwiseProcessingStep(AbstractProcessingStep):
         for iteration in range(self._NUM_ITERATIONS):
             context = ElementProcessingContext(
                 iteration=iteration,
+                elements=elements,
             )
-            self._process_recursively(elements, _context=context)
+            self._process_recursively(elements, _context=context, is_inner=False)
 
         return elements

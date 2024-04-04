@@ -72,6 +72,10 @@ class IrrelevantElement(AbstractSemanticElement):
     """
 
 
+class PageBreakElement(IrrelevantElement):
+    """Lets treat it as irrelevant for now."""
+
+
 class PageNumberElement(IrrelevantElement):
     """
     The PageNumberElement class represents a page number within a document.

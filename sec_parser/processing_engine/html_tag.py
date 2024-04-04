@@ -182,6 +182,24 @@ class HtmlTag:
             ]
         return self._children
 
+    def has_spans_as_desendants(self) -> bool:
+        if len(self.get_children()) == 0:
+            return False
+        for child in self.get_children():
+            if child.name != "span":
+                if not child.has_spans_as_desendants():
+                    return False
+        return True
+
+    def find_tags(self, name: str) -> list[HtmlTag]:
+        res: list[HtmlTag] = []
+        for child in self.get_children():
+            if child.name == name:
+                res.append(child)
+            if child.has_tag_children():
+                res = res + child.find_tags(name)
+        return res
+
     def contains_tag(self, name: str, *, include_self: bool = False) -> bool:
         """
         `contains_tag` method checks if the current HTML tag contains a descendant tag
@@ -287,7 +305,7 @@ class HtmlTag:
         if self._text_styles_metrics is None:
             self._text_styles_metrics = compute_text_styles_metrics(self._bs4)
         return self._text_styles_metrics
-    
+
     def is_ix_continuation(self) -> bool:
         for text_node in self._bs4.find_all(string=True, recursive=True):
             text: str = text_node.strip()
@@ -301,7 +319,7 @@ class HtmlTag:
             if not pp:
                 continue
             ppp = pp.find_parent()
-            if ppp and (ppp.name == 'ix:continuation' or ppp.name == 'ix:nonnumeric'):
+            if ppp and (ppp.name == "ix:continuation" or ppp.name == "ix:nonnumeric"):
                 return True
         return False
 

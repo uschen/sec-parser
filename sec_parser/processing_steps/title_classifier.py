@@ -18,12 +18,19 @@ if TYPE_CHECKING:  # pragma: no cover
     )
 from functools import cmp_to_key
 
+
 def sort_text_style(x: TextStyle, y: TextStyle) -> int:
-    if x.centered and not y.centered:
-        return 1
-    if not x.centered and y.centered:
-        return -1
-    return x.margin_top - y.margin_top
+    ## Text larger is higher
+    # if x._font_size - y._font_size != 0:
+    #     return x._font_size - y._font_size
+    if x.centered - y.centered != 0:
+        return x.centered - y.centered
+    if x.is_all_uppercase - y.is_all_uppercase != 0:
+        return x.is_all_uppercase - y.is_all_uppercase
+    if x.bold_with_font_weight - y.bold_with_font_weight != 0:
+        return x.bold_with_font_weight - y.bold_with_font_weight
+    return 0
+
 
 class TitleClassifier(AbstractElementwiseProcessingStep):
     """
@@ -49,23 +56,32 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
             types_to_exclude=types_to_exclude,
         )
 
-        self._unique_styles_by_order: tuple[TextStyle, ...] = ()
-    
-    def _add_unique_style(self, style: TextStyle) -> None:
+        self._unique_styles_by_order: dict[str, tuple[TextStyle, ...]] = {}
+
+    def _add_unique_style(self, section_id: str, style: TextStyle) -> None:
         """Add a new unique style if not already present."""
-        if style not in self._unique_styles_by_order:
-            if style.centered:
-                self._unique_styles_by_order = tuple(
-                    dict.fromkeys([style, *self._unique_styles_by_order]).keys(),
-                )
-            else:
-                self._unique_styles_by_order = tuple(
-                    dict.fromkeys([*self._unique_styles_by_order, style]).keys(),
-                )
-            # sorted_dict = sorted(
-            #           [*self._unique_styles_by_order, style],
-            #           key=cmp_to_key(sort_text_style),
-            #       )
+        if not section_id in self._unique_styles_by_order:
+            self._unique_styles_by_order[section_id] = ()
+        if style not in self._unique_styles_by_order[section_id]:
+            # if style.centered:
+            #     self._unique_styles_by_order = tuple(
+            #         dict.fromkeys([style, *self._unique_styles_by_order]).keys(),
+            #     )
+            # else:
+            #     self._unique_styles_by_order = tuple(
+            #         dict.fromkeys([*self._unique_styles_by_order, style]).keys(),
+            #     )
+            sorted_dict = tuple([*self._unique_styles_by_order[section_id], style])
+            sorted_dict = sorted(
+                sorted_dict,
+                key=cmp_to_key(sort_text_style),
+                reverse=True,
+            )
+            self._unique_styles_by_order[section_id] = sorted_dict
+            # print(f"----{section_id}----")
+            # for k in sorted_dict:
+            #     print(k)
+            # print(sorted_dict)
             # self._unique_styles_by_order = tuple(
             #     dict.fromkeys([*self._unique_styles_by_order, style]).keys(),
             # )
@@ -73,16 +89,16 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
     def _process_element(
         self,
         element: AbstractSemanticElement,
-        _: ElementProcessingContext,
+        _context: ElementProcessingContext,
     ) -> AbstractSemanticElement:
         """Process each element and convert to TitleElement if necessary."""
         if not isinstance(element, HighlightedTextElement):
             return element
         # print(element.style)
         # Ensure the style is tracked
-        self._add_unique_style(element.style)
+        self._add_unique_style(_context.section_id, element.style)
 
-        level = self._unique_styles_by_order.index(element.style)
+        level = self._unique_styles_by_order[_context.section_id].index(element.style)
         return TitleElement.create_from_element(
             element,
             level=level + 1 if element.ix_continuation else level,

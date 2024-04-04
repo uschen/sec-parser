@@ -15,6 +15,7 @@ from sec_parser.processing_steps.abstract_classes.abstract_processing_step impor
 from sec_parser.semantic_elements.composite_semantic_element import (
     CompositeSemanticElement,
 )
+from sec_parser.semantic_elements.highlighted_text_element import HighlightedTextElement
 from sec_parser.semantic_elements.semantic_elements import (
     AbstractSemanticElement,
     EmptyElement,
@@ -44,6 +45,7 @@ __all__ = [
     "AbstractSemanticElement",
     "CompositeSemanticElement",
     "NotYetClassifiedElement",
+    "HighlightedTextElement",
     "TopSectionTitle",
     "TextElement",
     "TitleElement",

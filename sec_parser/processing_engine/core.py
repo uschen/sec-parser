@@ -13,6 +13,10 @@ from sec_parser.processing_steps.highlighted_text_classifier import (
     HighlightedTextClassifier,
 )
 from sec_parser.processing_steps.image_classifier import ImageClassifier
+from sec_parser.processing_steps.individual_semantic_element_extractor.text_element_premerger import (
+    TextElementPreMerger,
+    TextPreMergedElement,
+)
 from sec_parser.processing_steps.individual_semantic_element_extractor.individual_semantic_element_extractor import (
     IndividualSemanticElementExtractor,
 )
@@ -23,7 +27,8 @@ from sec_parser.processing_steps.individual_semantic_element_extractor.single_el
     TableCheck,
 )
 from sec_parser.processing_steps.individual_semantic_element_extractor.single_element_checks.top_section_title_check import (
-    TopSectionTitleCheck10K, TopSectionTitleCheck10Q,
+    TopSectionTitleCheck10K,
+    TopSectionTitleCheck10Q,
 )
 from sec_parser.processing_steps.individual_semantic_element_extractor.single_element_checks.xbrl_tag_check import (
     XbrlTagCheck,
@@ -31,12 +36,16 @@ from sec_parser.processing_steps.individual_semantic_element_extractor.single_el
 from sec_parser.processing_steps.introductory_section_classifier import (
     IntroductorySectionElementClassifier,
 )
-from sec_parser.processing_steps.page_header_classifier import PageHeaderClassifier
+from sec_parser.processing_steps.page_header_classifier import (
+    PageHeaderClassifier,
+    PageHeaderByDistanceToPagebreakClassifier,
+)
 from sec_parser.processing_steps.page_number_classifier import PageNumberClassifier
 from sec_parser.processing_steps.supplementary_text_classifier import (
     SupplementaryTextClassifier,
 )
 from sec_parser.processing_steps.table_classifier import TableClassifier
+from sec_parser.processing_steps.pagebreak_classifier import PageBreakClassifier
 from sec_parser.processing_steps.table_of_contents_classifier import (
     TableOfContentsClassifier,
 )
@@ -183,6 +192,7 @@ class Edgar10QParser(AbstractSemanticElementParser):
             IndividualSemanticElementExtractor(
                 get_checks=get_checks or self.get_default_single_element_checks,
             ),
+            PageBreakClassifier(types_to_process={NotYetClassifiedElement}),
             ImageClassifier(types_to_process={NotYetClassifiedElement}),
             EmptyElementClassifier(types_to_process={NotYetClassifiedElement}),
             TableClassifier(types_to_process={NotYetClassifiedElement}),
@@ -212,6 +222,7 @@ class Edgar10QParser(AbstractSemanticElementParser):
             TopSectionTitleCheck10Q(),
         ]
 
+
 class Edgar10KParser(AbstractSemanticElementParser):
     """
     The Edgar10KParser class is responsible for parsing SEC EDGAR 10-K
@@ -225,16 +236,25 @@ class Edgar10KParser(AbstractSemanticElementParser):
         get_checks: Callable[[], list[AbstractSingleElementCheck]] | None = None,
     ) -> list[AbstractProcessingStep]:
         return [
+            TextElementPreMerger(types_to_process={NotYetClassifiedElement}),
             IndividualSemanticElementExtractor(
                 get_checks=get_checks or self.get_default_single_element_checks,
             ),
+            PageBreakClassifier(types_to_process={NotYetClassifiedElement}),
             ImageClassifier(types_to_process={NotYetClassifiedElement}),
             EmptyElementClassifier(types_to_process={NotYetClassifiedElement}),
             TableClassifier(types_to_process={NotYetClassifiedElement}),
             TableOfContentsClassifier(types_to_process={TableElement}),
-            TopSectionManagerFor10K(types_to_process={NotYetClassifiedElement}),
+            PageHeaderByDistanceToPagebreakClassifier(
+                types_to_process={NotYetClassifiedElement, TextPreMergedElement}
+            ),
+            TopSectionManagerFor10K(
+                types_to_process={NotYetClassifiedElement, TextPreMergedElement}
+            ),
             IntroductorySectionElementClassifier(),
-            TextClassifier(types_to_process={NotYetClassifiedElement}),
+            TextClassifier(
+                types_to_process={NotYetClassifiedElement, TextPreMergedElement}
+            ),
             HighlightedTextClassifier(types_to_process={TextElement}),
             SupplementaryTextClassifier(
                 types_to_process={TextElement, HighlightedTextElement},
