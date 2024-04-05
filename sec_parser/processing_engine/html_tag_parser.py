@@ -54,4 +54,30 @@ class HtmlTagParser(AbstractHtmlTagParser):
         if root.html:
             root = root.html
             root = root.body if root.body else root
+
+        root = self._find_root(root)
         return root
+
+    def _find_root(self, root: bs4.Tag) -> bs4.Tag:
+        child_count = 0
+        first_child = None
+        for child in root.children:
+            if isinstance(child, bs4.NavigableString):
+                continue
+            if child_count == 0:
+                first_child = child
+            child_count += 1
+            if child_count >= 2:
+                print(
+                    "child_count",
+                    child_count,
+                    "root tag",
+                    root.name,
+                    "child.name",
+                    child.name,
+                )
+                return root
+        if child_count == 0:
+            return root
+        if child_count == 1:
+            return self._find_root(first_child)

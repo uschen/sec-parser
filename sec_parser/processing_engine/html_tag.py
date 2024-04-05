@@ -162,8 +162,19 @@ class HtmlTag:
         The result is cached as the underlying data doesn't change.
         """
         if self._text is None:
-            self._text = self._bs4.text.strip()
+            texts: list[str] = []
+            for text in self._bs4.stripped_strings:
+                texts.append(text.replace("\n", " "))
+            self._text = "\n".join(texts)
         return self._text
+
+    def _remove_smart_quotes(self, text):
+        return (
+            text.replace("\u2018", "'")
+            .replace("\u2019", "'")
+            .replace("\u201c", '"')
+            .replace("\u201d", '"')
+        )
 
     @property
     def name(self) -> str:

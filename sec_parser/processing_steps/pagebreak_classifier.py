@@ -31,7 +31,7 @@ class PageBreakClassifier(AbstractElementwiseProcessingStep):
         element: AbstractSemanticElement,
         _: ElementProcessingContext,
     ) -> AbstractSemanticElement:
-        if element.html_tag.contains_tag("hr", include_self=True):
+        if element.html_tag.name == "hr":
             return PageBreakElement.create_from_element(
                 element,
                 log_origin=self.__class__.__name__,

@@ -41,7 +41,9 @@ class TableClassifier(AbstractElementwiseProcessingStep):
         element: AbstractSemanticElement,
         _: ElementProcessingContext,
     ) -> AbstractSemanticElement:
-        if element.html_tag.contains_tag("table", include_self=True):
+        if element.html_tag.name == "table" or element.html_tag.contains_tag(
+            "table", include_self=True
+        ):
             if not self._check_threshold:
                 return TableElement.create_from_element(
                     element,

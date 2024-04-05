@@ -84,6 +84,16 @@ class TextElementPreMerger(AbstractElementwiseProcessingStep):
         element: AbstractSemanticElement,
         _: ElementProcessingContext,
     ) -> AbstractSemanticElement:
+        if "The European Commission " in element.text:
+            print("found", element, element.html_tag.name, element.text)
+            for child in element.html_tag.get_children():
+                child._bs4.smooth()
+                print(
+                    "- child",
+                    child.name,
+                    child._bs4.get_text(),
+                    child.text,
+                )
         if not element.contains_words():
             return element
         if not element.html_tag.has_tag_children():

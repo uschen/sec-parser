@@ -260,7 +260,7 @@ class Edgar10KParser(AbstractSemanticElementParser):
             ImageClassifier(types_to_process={NotYetClassifiedElement}),
             EmptyElementClassifier(types_to_process={NotYetClassifiedElement}),
             TableClassifier(
-                types_to_process={NotYetClassifiedElement}, check_threshold=False
+                types_to_process={NotYetClassifiedElement}, check_threshold=True
             ),
             TableOfContentsClassifier(types_to_process={TableElement}),
             PageHeaderByDistanceToPagebreakClassifier(
