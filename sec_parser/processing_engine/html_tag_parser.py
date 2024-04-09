@@ -68,14 +68,14 @@ class HtmlTagParser(AbstractHtmlTagParser):
                 first_child = child
             child_count += 1
             if child_count >= 2:
-                print(
-                    "child_count",
-                    child_count,
-                    "root tag",
-                    root.name,
-                    "child.name",
-                    child.name,
-                )
+                # print(
+                #     "child_count",
+                #     child_count,
+                #     "root tag",
+                #     root.name,
+                #     "child.name",
+                #     child.name,
+                # )
                 return root
         if child_count == 0:
             return root
