@@ -98,6 +98,9 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
             return element
         # print(element.style)
         # Ensure the style is tracked
+        # ignore very long text
+        if len(element.text) > 150:
+            return element
         self._add_unique_style(_context.section_id, element.style)
 
         level = self._unique_styles_by_order[_context.section_id].index(element.style)
