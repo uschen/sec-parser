@@ -169,6 +169,18 @@ class AbstractSemanticElementParser(ABC):
         elements: list[AbstractSemanticElement] = []
 
         for tag in root_tags:
+            self.pre_merge_span_with_only_ix_non(tag)
+            if "display:none" in tag._bs4.get(
+                "style", ""
+            ) or "display: none" in tag._bs4.get("style", ""):
+                continue
+            # if tag has no attrs and only has a single child, we replace it with its sole-child
+            if (
+                tag.name == "div"
+                and len(tag._bs4.attrs) == 0
+                and len(tag.get_children()) == 1
+            ):
+                tag = tag.get_children()[0]
             # unwrap root level ix:continuation
             if tag.name == "ix:continuation":
                 elements += [
@@ -191,6 +203,18 @@ class AbstractSemanticElementParser(ABC):
             include_containers=include_containers,
         )
 
+    def pre_merge_span_with_only_ix_non(self, tag: HtmlTag):
+        if not tag.has_tag_children():
+            return
+        if tag.name == "span":
+            if tag.only_has_navigable_string_or_ix_non_as_children():
+                text = tag._bs4.text
+                for descendant in tag._bs4.find_all():
+                    descendant.decompose()
+                tag._bs4.string = text
+        for child in tag.get_children():
+            self.pre_merge_span_with_only_ix_non(child)
+
 
 class Edgar10QParser(AbstractSemanticElementParser):
     """
@@ -205,17 +229,27 @@ class Edgar10QParser(AbstractSemanticElementParser):
         get_checks: Callable[[], list[AbstractSingleElementCheck]] | None = None,
     ) -> list[AbstractProcessingStep]:
         return [
+            TextElementPreMerger(types_to_process={NotYetClassifiedElement}),
             IndividualSemanticElementExtractor(
                 get_checks=get_checks or self.get_default_single_element_checks,
             ),
             PageBreakClassifier(types_to_process={NotYetClassifiedElement}),
             ImageClassifier(types_to_process={NotYetClassifiedElement}),
             EmptyElementClassifier(types_to_process={NotYetClassifiedElement}),
-            TableClassifier(types_to_process={NotYetClassifiedElement}),
+            TableClassifier(
+                types_to_process={NotYetClassifiedElement}, check_threshold=True
+            ),
             TableOfContentsClassifier(types_to_process={TableElement}),
-            TopSectionManagerFor10Q(types_to_process={NotYetClassifiedElement}),
+            PageHeaderByDistanceToPagebreakClassifier(
+                types_to_process={NotYetClassifiedElement, TextPreMergedElement}
+            ),
+            TopSectionManagerFor10Q(
+                types_to_process={NotYetClassifiedElement, TextPreMergedElement}
+            ),
             IntroductorySectionElementClassifier(),
-            TextClassifier(types_to_process={NotYetClassifiedElement}),
+            TextClassifier(
+                types_to_process={NotYetClassifiedElement, TextPreMergedElement}
+            ),
             HighlightedTextClassifier(types_to_process={TextElement}),
             SupplementaryTextClassifier(
                 types_to_process={TextElement, HighlightedTextElement},
@@ -227,7 +261,7 @@ class Edgar10QParser(AbstractSemanticElementParser):
                 types_to_process={TextElement, HighlightedTextElement},
             ),
             TitleClassifier(types_to_process={HighlightedTextElement}),
-            TextElementMerger(),
+            # TextElementMerger(),
         ]
 
     def get_default_single_element_checks(self) -> list[AbstractSingleElementCheck]:

@@ -25,6 +25,9 @@ from sec_parser.semantic_elements.semantic_elements import (
 )
 from sec_parser.semantic_elements.highlighted_text_element import HighlightedTextElement
 from sec_parser.semantic_elements.table_element.table_element import TableElement
+from sec_parser.semantic_elements.table_element.table_of_contents_element import (
+    TableOfContentsElement,
+)
 from sec_parser.semantic_elements.title_element import TitleElement
 from sec_parser.semantic_elements.top_section_title import TopSectionTitle
 
@@ -39,6 +42,7 @@ __all__ = [
     "IrrelevantElement",
     "ImageElement",
     "TableElement",
+    "TableOfContentsElement",
     "EmptyElement",
     "CompositeSemanticElement",
     "SupplementaryText",

@@ -99,7 +99,7 @@ class TextElementPreMerger(AbstractElementwiseProcessingStep):
         if not element.html_tag.has_tag_children():
             return element
 
-        # handle only has 2 <span> case for now
+        # merge span(s): handle only has 2 <span> case for now
         span_tags: list[HtmlTag] = []
         for child in element.html_tag.get_children():
             if child.name == "span":

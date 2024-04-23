@@ -71,7 +71,18 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
     @staticmethod
     def match_part(text: str) -> str | None:
         if match := part_pattern.match(text):
-            return str(len(match.group(1)))
+            match match.group(1).lower():
+                case "i":
+                    return "1"
+                case "ii":
+                    return "2"
+                case "iii":
+                    return "3"
+                case "iv":
+                    return "4"
+                case _:
+                    return str(len(match.group(1)))
+            # return str(len(match.group(1)))
         return None
 
     @staticmethod
@@ -102,6 +113,7 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
        - Invokes the `_process_iteration_1` function.
        - Returns the value returned by `_process_iteration_1`.
     """
+
     def _process_element(
         self,
         element: AbstractSemanticElement,
@@ -112,10 +124,8 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
             self._process_iteration_0(element)
             return element
 
-
         if context.iteration == 1:
             return self._process_iteration_1(element)
-
 
         msg = f"Invalid iteration: {context.iteration}"
         raise ValueError(msg)
@@ -125,10 +135,13 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
     Checks whether the given semantic element qualifies as a candidate or not.
     If it does, it appends the candidate version of the semantic element to the _candidates.
     """
+
     def _process_iteration_0(self, element: AbstractSemanticElement) -> None:
         self._identify_candidate(element)
 
-    def _process_iteration_1(self, element: AbstractSemanticElement) -> AbstractSemanticElement:
+    def _process_iteration_1(
+        self, element: AbstractSemanticElement
+    ) -> AbstractSemanticElement:
         if self._selected_candidates is None:
             self._selected_candidates = self._select_candidates()
 
@@ -150,6 +163,7 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
       the section type and the semantic element.
     - Appends the identified candidate to the list of candidates "_candidates"
     """
+
     def _identify_candidate(self, element: AbstractSemanticElement) -> None:
         candidate = None
 
@@ -157,22 +171,21 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
             self._last_part = part
             section_type = self._get_section_type(f"part{self._last_part}")
             if section_type is InvalidTopSectionIn10Q:
-                    warnings.warn(
-                        f"Invalid section type for part{self._last_part}. Defaulting to InvalidTopSectionIn10Q.",
-                        UserWarning,
-                        stacklevel=8,
-                    )
+                warnings.warn(
+                    f"Invalid section type for part{self._last_part}. Defaulting to InvalidTopSectionIn10Q.",
+                    UserWarning,
+                    stacklevel=8,
+                )
             candidate = _Candidate(section_type, element)
         elif item := self.match_item(element.text):
             section_type = self._get_section_type(f"part{self._last_part}item{item}")
             if section_type is InvalidTopSectionIn10Q:
-                    warnings.warn(
-                        f"Invalid section type for part{self._last_part}item{item}. Defaulting to InvalidTopSectionIn10Q.",
-                        UserWarning,
-                        stacklevel=8,
-                    )
+                warnings.warn(
+                    f"Invalid section type for part{self._last_part}item{item}. Defaulting to InvalidTopSectionIn10Q.",
+                    UserWarning,
+                    stacklevel=8,
+                )
             candidate = _Candidate(section_type, element)
-
 
         if candidate is not None:
             self._candidates.append(candidate)
@@ -191,6 +204,7 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
     Output:
     - returns the corresponding TopSectionType of the given identifier. Returns InvalisTopSectionIn10Q if the identifier doesn't match any TopSectionType.
     """
+
     def _get_section_type(self, identifier: str) -> TopSectionType:
         return IDENTIFIER_TO_10Q_SECTION.get(identifier, InvalidTopSectionIn10Q)
 
@@ -203,11 +217,11 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
 
     Enhancement: select_element can be omitted. It basically returns the first element.
     """
+
     def _select_candidates(self) -> tuple[_Candidate, ...]:
         grouped_candidates = defaultdict(list)
         for candidate in self._candidates:
             grouped_candidates[candidate.section_type].append(candidate.element)
-
 
         """
          Selects a semantic element from the provided list based on specific criteria.
@@ -218,20 +232,21 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
          Output:
         - The selected AbstractSemanticElement.
         """
-        def select_element(elements: list[AbstractSemanticElement]) -> AbstractSemanticElement:
 
+        def select_element(
+            elements: list[AbstractSemanticElement],
+        ) -> AbstractSemanticElement:
 
             if len(elements) == 1:
                 return elements[0]
             elements_without_table = [
-                        element
-                        for element in elements
-                        if not element.html_tag.contains_tag("table", include_self = True)
-                    ]
+                element
+                for element in elements
+                if not element.html_tag.contains_tag("table", include_self=True)
+            ]
             if len(elements_without_table) >= 1:
-                    return elements_without_table[0]
+                return elements_without_table[0]
             return elements[0]
-
 
         return tuple(
             _Candidate(
@@ -254,24 +269,31 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
     Output:
     - Either the original input element or a newly generated top section title element associated with the input element.
     """
-    def _process_selected_candidates(self, element: AbstractSemanticElement) -> AbstractSemanticElement:
 
+    def _process_selected_candidates(
+        self, element: AbstractSemanticElement
+    ) -> AbstractSemanticElement:
 
         if self._selected_candidates is None:
             return element
 
-
         for candidate in self._selected_candidates:
             if candidate.element is element:
                 if candidate.section_type.order > self._last_order_number:
-                    self._update_last_order_number(element, candidate.section_type.order)
+                    self._update_last_order_number(
+                        element, candidate.section_type.order
+                    )
                 else:
-                    self._log_order_number_not_greater(element, candidate.section_type.order)
+                    self._log_order_number_not_greater(
+                        element, candidate.section_type.order
+                    )
                     continue
                 return self._create_top_section_title(candidate)
         return element
 
-    def _update_last_order_number(self, element: AbstractSemanticElement, order: float) -> None:
+    def _update_last_order_number(
+        self, element: AbstractSemanticElement, order: float
+    ) -> None:
         message = f"this.order={order} last_order_number={self._last_order_number}."
         element.processing_log.add_item(
             message=message,
@@ -279,7 +301,9 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
         )
         self._last_order_number = order
 
-    def _log_order_number_not_greater(self, element: AbstractSemanticElement, order: float) -> None:
+    def _log_order_number_not_greater(
+        self, element: AbstractSemanticElement, order: float
+    ) -> None:
         message = f"Order number {order} is not greater than last order number {self._last_order_number}."
         element.processing_log.add_item(
             message=message,
@@ -287,7 +311,8 @@ class TopSectionManagerFor10Q(AbstractElementwiseProcessingStep):
         )
 
     def _create_top_section_title(
-        self, candidate: _Candidate,
+        self,
+        candidate: _Candidate,
     ) -> AbstractSemanticElement:
         return TopSectionTitle.create_from_element(
             candidate.element,

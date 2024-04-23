@@ -202,6 +202,9 @@ class HtmlTag:
                     return False
         return True
 
+    def only_has_navigable_string_or_ix_non_as_children(self) -> bool:
+        return only_has_navigable_string_or_ix_non_as_children(self._bs4)
+
     def find_tags(self, name: str) -> list[HtmlTag]:
         res: list[HtmlTag] = []
         for child in self.get_children():
@@ -418,3 +421,15 @@ def remove_affixes(text: str, prefixes: tuple, suffix: str) -> str:
                 break
     end = -len(suffix) if suffix and text.endswith(suffix) else None
     return text[start:end]
+
+
+def only_has_navigable_string_or_ix_non_as_children(tag: bs4.Tag) -> bool:
+    for child in tag.findAll(recursive=False):
+        if isinstance(child, bs4.NavigableString):
+            continue
+        if not child.name.startswith("ix:non"):
+            return False
+        # check to make sure child only has navigatable string
+        if not only_has_navigable_string_or_ix_non_as_children(child):
+            return False
+    return True
