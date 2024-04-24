@@ -58,7 +58,8 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
             types_to_process=types_to_process,
             types_to_exclude=types_to_exclude,
         )
-
+        self._title_length_threshold = 120
+        self._title_end_with_period_length_threshold = 20
         self._unique_styles_by_order: dict[str, tuple[TextStyle, ...]] = {}
 
     def _add_unique_style(self, section_id: str, style: TextStyle) -> None:
@@ -97,11 +98,15 @@ class TitleClassifier(AbstractElementwiseProcessingStep):
         """Process each element and convert to TitleElement if necessary."""
         if not isinstance(element, HighlightedTextElement):
             return element
-        # print(element.style)
+
         # Ensure the style is tracked
-        # ignore very long text
-        if len(element.text) > 150:
-            return element
+        # ignore very long text, espcially it ends with '.'
+        if element.text.rstrip().endswith("."):
+            if len(element.text) > self._title_end_with_period_length_threshold:
+                return element
+        else:
+            if len(element.text) > self._title_length_threshold:
+                return element
         self._add_unique_style(_context.section_id, element.style)
 
         level = self._unique_styles_by_order[_context.section_id].index(element.style)
