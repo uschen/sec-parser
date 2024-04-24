@@ -164,7 +164,8 @@ class HtmlTag:
         if self._text is None:
             texts: list[str] = []
             for text in self._bs4.stripped_strings:
-                texts.append(text.replace("\n", " "))
+                texts.append(" ".join([t.strip() for t in text.split("\n")]))
+                # texts.append(text.replace("\n", " "))
             self._text = "\n".join(texts)
         return self._text
 
