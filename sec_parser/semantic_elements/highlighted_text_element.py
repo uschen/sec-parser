@@ -135,7 +135,8 @@ class TextStyle:
         )
         fs = original_style["font-size"] if "font-size" in original_style else ""
         if fs.endswith("pt"):
-            fs = float(fs.removesuffix("pt"))
+            s = fs.removesuffix("pt")
+            fs = 0 if s == "" else float(s)
         else:
             fs = 0
         # print("original_style", original_style)
