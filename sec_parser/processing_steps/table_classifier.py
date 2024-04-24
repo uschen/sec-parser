@@ -33,7 +33,7 @@ class TableClassifier(AbstractElementwiseProcessingStep):
             types_to_process=types_to_process,
             types_to_exclude=types_to_exclude,
         )
-        self._row_count_threshold = 0
+        self._row_count_threshold = 1
         self._check_threshold = check_threshold
 
     def _process_element(
